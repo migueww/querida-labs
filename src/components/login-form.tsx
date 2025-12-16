@@ -40,7 +40,7 @@ export function LoginForm() {
         return;
       }
 
-      router.push("/dashboard");
+      router.push("/consolidador-xlsx");
       router.refresh();
     } catch (error) {
       setError("Ocorreu um erro ao tentar fazer login.");

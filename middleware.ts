@@ -1,8 +1,9 @@
 import { NextResponse, type NextRequest } from "next/server";
+import { verifyToken } from "@/lib/jwt";
 
 const PUBLIC_PATHS = ["/login", "/api/login"];
 
-export function middleware(request: NextRequest) {
+export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // Permite arquivos estáticos e rotas do Next.
@@ -17,21 +18,36 @@ export function middleware(request: NextRequest) {
 
   // Permite rotas públicas explícitas.
   if (PUBLIC_PATHS.some((path) => pathname === path || pathname.startsWith(path))) {
-    // Se já está autenticado e tentando acessar /login, redireciona para dashboard
-    const authCookie = request.cookies.get("auth");
-    if (authCookie && pathname === "/login") {
-      return NextResponse.redirect(new URL("/dashboard", request.url));
+    // Se já está autenticado e tentando acessar /login, redireciona para consolidador
+    const authToken = request.cookies.get("auth-token");
+    if (authToken) {
+      const isValid = await verifyToken(authToken.value);
+      if (isValid && pathname === "/login") {
+        return NextResponse.redirect(new URL("/consolidador-xlsx", request.url));
+      }
     }
     return NextResponse.next();
   }
 
-  // Verifica autenticação para todas as outras rotas
-  const authCookie = request.cookies.get("auth");
+  // Verifica autenticação JWT para todas as outras rotas
+  const authToken = request.cookies.get("auth-token");
 
-  if (!authCookie || authCookie.value !== "1") {
+  if (!authToken) {
     const loginUrl = new URL("/login", request.url);
     loginUrl.searchParams.set("from", pathname);
     return NextResponse.redirect(loginUrl);
+  }
+
+  // Verifica se o token é válido
+  const payload = await verifyToken(authToken.value);
+
+  if (!payload) {
+    const loginUrl = new URL("/login", request.url);
+    loginUrl.searchParams.set("from", pathname);
+    const response = NextResponse.redirect(loginUrl);
+    // Remove o token inválido
+    response.cookies.delete("auth-token");
+    return response;
   }
 
   return NextResponse.next();

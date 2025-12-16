@@ -6,7 +6,8 @@ export async function POST() {
     { status: 200 }
   );
 
-  response.cookies.delete("auth");
+  // Remove o token JWT
+  response.cookies.delete("auth-token");
 
   return response;
 }
