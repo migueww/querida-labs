@@ -2,13 +2,11 @@
 
 import React from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
-
-const DEFAULT_EMAIL = "ana.clara@coneqt.com";
-const DEFAULT_PASSWORD = "querida_2509";
 
 export function LoginForm() {
   const router = useRouter();
@@ -29,6 +27,7 @@ export function LoginForm() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({ email, password }),
+        credentials: "include",
       });
 
       if (!response.ok) {
@@ -50,19 +49,19 @@ export function LoginForm() {
   }
 
   return (
-    <Card>
-      <div className="mb-6 text-center">
-        <h1 className="text-2xl font-semibold text-slate-900">
-          Login
-        </h1>
-        <p className="mt-1 text-sm text-slate-500">
-          Use o login padrão para acessar o sistema.
+    <Card className="w-full max-w-md">
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold text-slate-900 mb-2">Login</h1>
+        <p className="text-sm text-slate-600">
+          Insira suas credenciais para entrar no sistema
         </p>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form onSubmit={handleSubmit} className="space-y-5">
         <div className="space-y-2">
-          <Label htmlFor="email">E-mail</Label>
+          <Label htmlFor="email" className="text-slate-700 font-medium">
+            Email
+          </Label>
           <Input
             id="email"
             type="email"
@@ -71,11 +70,22 @@ export function LoginForm() {
             value={email}
             onChange={(event) => setEmail(event.target.value)}
             required
+            className="h-11"
           />
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="password">Senha</Label>
+          <div className="flex items-center justify-between">
+            <Label htmlFor="password" className="text-slate-700 font-medium">
+              Senha
+            </Label>
+            <Link
+              href="#"
+              className="text-sm text-slate-600 hover:text-slate-900 transition-colors"
+            >
+              Esqueci minha senha
+            </Link>
+          </div>
           <Input
             id="password"
             type="password"
@@ -84,24 +94,53 @@ export function LoginForm() {
             value={password}
             onChange={(event) => setPassword(event.target.value)}
             required
+            className="h-11"
           />
         </div>
 
         {error ? (
-          <p className="text-sm text-red-600">{error}</p>
+          <div className="p-3 rounded-md bg-red-50 border border-red-200">
+            <p className="text-sm text-red-600">{error}</p>
+          </div>
         ) : null}
 
         <Button
           type="submit"
-          className="mt-2 w-full"
+          className="w-full h-11 text-base font-medium"
           disabled={isSubmitting}
         >
-          {isSubmitting ? "Entrando..." : "Entrar"}
+          {isSubmitting ? "Entrando..." : "Login"}
         </Button>
 
-        <p className="mt-3 text-center text-xs text-slate-400">
-          E-mail: <span className="font-mono">{DEFAULT_EMAIL}</span>{" "}
-          · Senha: <span className="font-mono">{DEFAULT_PASSWORD}</span>
+        <div className="relative my-6">
+          <div className="absolute inset-0 flex items-center">
+            <div className="w-full border-t border-slate-200"></div>
+          </div>
+          <div className="relative flex justify-center text-sm">
+            <span className="px-2 bg-white text-slate-500">ou</span>
+          </div>
+        </div>
+
+        <Button
+          type="button"
+          variant="outline"
+          className="w-full h-11 text-base font-medium border-slate-300 hover:bg-slate-50"
+          onClick={() => {
+            // Placeholder para login com Google
+            setError("Login com Google ainda não implementado.");
+          }}
+        >
+          Login com o Google
+        </Button>
+
+        <p className="text-center text-sm text-slate-600 mt-6">
+          Não tem uma conta?{" "}
+          <Link
+            href="#"
+            className="font-medium text-slate-900 hover:underline"
+          >
+            Crie uma!
+          </Link>
         </p>
       </form>
     </Card>
