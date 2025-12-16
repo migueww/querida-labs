@@ -17,25 +17,36 @@ export function LoginForm() {
   const [error, setError] = React.useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
 
-  function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setError(null);
     setIsSubmitting(true);
 
-    const isValid =
-      email === DEFAULT_EMAIL && password === DEFAULT_PASSWORD;
+    try {
+      const response = await fetch("/api/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email, password }),
+      });
 
-    if (!isValid) {
-      setError("Credenciais inválidas. Verifique seu e-mail e senha.");
-      setIsSubmitting(false);
-      return;
-    }
+      if (!response.ok) {
+        const data = await response.json().catch(() => ({}));
+        setError(
+          data?.message ||
+            "Credenciais inválidas. Verifique seu e-mail e senha."
+        );
+        setIsSubmitting(false);
+        return;
+      }
 
-    // Simula um pequeno delay para feedback de loading.
-    setTimeout(() => {
-      setIsSubmitting(false);
       router.push("/dashboard");
-    }, 500);
+      router.refresh();
+    } catch (error) {
+      setError("Ocorreu um erro ao tentar fazer login.");
+      setIsSubmitting(false);
+    }
   }
 
   return (
