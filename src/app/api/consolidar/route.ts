@@ -92,20 +92,38 @@ export async function POST(request: Request) {
       );
     }
 
+    // Função para parsear número com precisão de até 8 casas decimais
+    function parseQuantidade(value: any): number {
+      if (typeof value === "number") {
+        return parseFloat(value.toFixed(8));
+      }
+      const str = String(value || "0")
+        .trim()
+        .replace(/[^\d.,-]/g, "") // Remove caracteres não numéricos exceto vírgula, ponto e menos
+        .replace(",", "."); // Converte vírgula para ponto
+      const num = parseFloat(str) || 0;
+      return parseFloat(num.toFixed(8)); // Garante precisão de até 8 casas decimais
+    }
+
+    // Função para somar quantidades com precisão
+    function somaQuantidades(a: number, b: number): number {
+      const resultado = a + b;
+      return parseFloat(resultado.toFixed(8));
+    }
+
     // Agrupa por composto e soma as quantidades
     const compostoMap = new Map<string, CompostoData>();
 
     for (const row of allRows) {
       const composto = String(row[compostoIndex] || "").trim();
-      const quantidadeStr = String(row[quantidadeIndex] || "0").trim();
-      const quantidade = parseFloat(quantidadeStr.replace(",", ".")) || 0;
+      const quantidade = parseQuantidade(row[quantidadeIndex]);
 
       if (!composto) continue;
 
       if (compostoMap.has(composto)) {
-        // Se já existe, soma a quantidade
+        // Se já existe, soma a quantidade com precisão
         const existing = compostoMap.get(composto)!;
-        existing.quantidade += quantidade;
+        existing.quantidade = somaQuantidades(existing.quantidade, quantidade);
         // Mantém a primeira linha encontrada como base (ou você pode fazer merge de outras colunas)
       } else {
         // Cria nova entrada
@@ -121,9 +139,13 @@ export async function POST(request: Request) {
 
     // Converte o Map para array e ordena por quantidade (decrescente)
     const consolidatedArray = Array.from(compostoMap.values())
-      .sort((a, b) => b.quantidade - a.quantidade)
+      .sort((a, b) => {
+        // Ordena com precisão de até 8 casas decimais
+        const diff = b.quantidade - a.quantidade;
+        return diff > 0 ? 1 : diff < 0 ? -1 : 0;
+      })
       .map((item) => {
-        // Atualiza a quantidade na linha com o valor consolidado
+        // Atualiza a quantidade na linha com o valor consolidado (mantém precisão)
         const row = [...item.row];
         row[quantidadeIndex] = item.quantidade;
         return row;
@@ -135,6 +157,21 @@ export async function POST(request: Request) {
     // Cria uma nova planilha com os dados consolidados
     const newWorkbook = XLSX.utils.book_new();
     const newWorksheet = XLSX.utils.aoa_to_sheet(finalData);
+    
+    // Garante que a coluna de quantidade seja formatada como número com até 8 casas decimais
+    const range = XLSX.utils.decode_range(newWorksheet["!ref"] || "A1");
+    for (let row = 1; row <= range.e.r; row++) {
+      const cellAddress = XLSX.utils.encode_cell({ r: row, c: quantidadeIndex });
+      if (newWorksheet[cellAddress]) {
+        const cell = newWorksheet[cellAddress];
+        if (typeof cell.v === "number") {
+          // Formata o número para garantir até 8 casas decimais
+          cell.v = parseFloat(cell.v.toFixed(8));
+          cell.z = "#,##0.########"; // Formato customizado para até 8 casas decimais
+        }
+      }
+    }
+    
     XLSX.utils.book_append_sheet(newWorkbook, newWorksheet, "Consolidado");
 
     // Gera o buffer do arquivo Excel
