@@ -1,23 +1,169 @@
+"use client";
+
 import { AppLayout } from "@/components/app-layout";
+import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { useState } from "react";
 
 export default function ConsolidadorXLSXPage() {
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+
+  function handleFileChange(event: React.ChangeEvent<HTMLInputElement>) {
+    const files = event.target.files;
+    if (files) {
+      const xlsxFiles = Array.from(files).filter(
+        (file) =>
+          file.name.endsWith(".xlsx") || file.name.endsWith(".xls")
+      );
+      setSelectedFiles((prev) => [...prev, ...xlsxFiles]);
+    }
+  }
+
+  function handleRemoveFile(index: number) {
+    setSelectedFiles((prev) => prev.filter((_, i) => i !== index));
+  }
+
+  function handleClearAll() {
+    setSelectedFiles([]);
+  }
+
   return (
     <AppLayout>
       <div className="w-full max-w-4xl">
-        <div className="rounded-xl border border-slate-200 bg-white p-8 shadow-sm">
+        <Card className="p-8">
           <h1 className="text-2xl font-semibold text-slate-900 mb-2">
             Consolidador XLSX
           </h1>
           <p className="text-sm text-slate-600 mb-6">
             Ferramenta para consolidar arquivos Excel (.xlsx) em um único arquivo.
           </p>
-          
-          <div className="mt-8 p-6 bg-slate-50 rounded-lg border border-slate-200">
-            <p className="text-sm text-slate-600 text-center">
-              Funcionalidade em desenvolvimento...
-            </p>
+
+          <div className="space-y-6">
+            <div className="space-y-2">
+              <Label htmlFor="file-upload" className="text-slate-700 font-medium">
+                Adicionar Arquivo Excel
+              </Label>
+              <div className="flex items-center gap-4">
+                <label
+                  htmlFor="file-upload"
+                  className="flex-1 cursor-pointer"
+                >
+                  <div className="flex flex-col items-center justify-center w-full h-32 border-2 border-slate-300 border-dashed rounded-lg bg-slate-50 hover:bg-slate-100 transition-colors">
+                    <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                      <svg
+                        className="w-10 h-10 mb-3 text-slate-400"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
+                        />
+                      </svg>
+                      <p className="mb-2 text-sm text-slate-500">
+                        <span className="font-semibold">Clique para fazer upload</span> ou arraste e solte
+                      </p>
+                      <p className="text-xs text-slate-500">
+                        XLSX ou XLS (MAX. 10MB por arquivo)
+                      </p>
+                    </div>
+                  </div>
+                  <input
+                    id="file-upload"
+                    type="file"
+                    className="hidden"
+                    accept=".xlsx,.xls"
+                    multiple
+                    onChange={handleFileChange}
+                  />
+                </label>
+              </div>
+            </div>
+
+            {selectedFiles.length > 0 && (
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <Label className="text-slate-700 font-medium">
+                    Arquivos Selecionados ({selectedFiles.length})
+                  </Label>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleClearAll}
+                    className="text-xs"
+                  >
+                    Limpar Todos
+                  </Button>
+                </div>
+                <div className="space-y-2">
+                  {selectedFiles.map((file, index) => (
+                    <div
+                      key={index}
+                      className="flex items-center justify-between p-3 bg-slate-50 rounded-lg border border-slate-200"
+                    >
+                      <div className="flex items-center gap-3 flex-1 min-w-0">
+                        <svg
+                          className="w-5 h-5 text-green-600 flex-shrink-0"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                          />
+                        </svg>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium text-slate-900 truncate">
+                            {file.name}
+                          </p>
+                          <p className="text-xs text-slate-500">
+                            {(file.size / 1024 / 1024).toFixed(2)} MB
+                          </p>
+                        </div>
+                      </div>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleRemoveFile(index)}
+                        className="ml-2 flex-shrink-0"
+                      >
+                        <svg
+                          className="w-4 h-4"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M6 18L18 6M6 6l12 12"
+                          />
+                        </svg>
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {selectedFiles.length > 0 && (
+              <div className="pt-4 border-t border-slate-200">
+                <Button className="w-full" size="lg">
+                  Consolidar Arquivos
+                </Button>
+              </div>
+            )}
           </div>
-        </div>
+        </Card>
       </div>
     </AppLayout>
   );
