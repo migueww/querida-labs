@@ -8,11 +8,11 @@ function MainContent({ children }: { children: React.ReactNode }) {
 
   return (
     <main
-      className={`flex-1 overflow-y-auto bg-slate-50 transition-all duration-300 ${
+      className={`flex-1 overflow-y-auto bg-slate-50 transition-all duration-300 ease-in-out ${
         isOpen ? "ml-64" : "ml-16"
       }`}
     >
-      <div className="min-h-full">{children}</div>
+      <div className="min-h-full p-6">{children}</div>
     </main>
   );
 }
