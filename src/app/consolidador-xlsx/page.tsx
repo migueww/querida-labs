@@ -39,6 +39,53 @@ export default function ConsolidadorXLSXPage() {
             Ferramenta para consolidar arquivos Excel (.xlsx) em um único arquivo.
           </p>
 
+          {/* Download exemplo */}
+          <div className="mb-6 p-4 bg-blue-50/50 border border-blue-200/50 rounded-lg">
+            <div className="flex items-start gap-3">
+              <svg
+                className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
+              </svg>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium text-slate-900 mb-1">
+                  Não sabe o formato?
+                </p>
+                <p className="text-xs text-slate-600 mb-2">
+                  Baixe o arquivo de exemplo para ver o formato esperado.
+                </p>
+                <a
+                  href="/planilha_compostos_exemplo.xlsx"
+                  download="planilha_compostos_exemplo.xlsx"
+                  className="inline-flex items-center gap-2 text-sm font-medium text-blue-600 hover:text-blue-700 transition-colors duration-200 hover:underline"
+                >
+                  <svg
+                    className="w-4 h-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                    />
+                  </svg>
+                  Baixar arquivo de exemplo
+                </a>
+              </div>
+            </div>
+          </div>
+
           <div className="space-y-6">
             <div className="space-y-2">
               <Label htmlFor="file-upload" className="text-slate-700 font-medium">
