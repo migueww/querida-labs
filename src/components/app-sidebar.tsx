@@ -32,7 +32,7 @@ export function AppSidebar() {
   }
 
   return (
-    <Sidebar>
+    <Sidebar className="flex flex-col">
       <SidebarHeader>
         <SidebarTrigger />
       </SidebarHeader>
@@ -125,7 +125,7 @@ export function AppSidebar() {
         <Button
           onClick={handleLogout}
           variant="outline"
-          className="w-full justify-start gap-3"
+          className={`w-full gap-3 ${isOpen ? "justify-start" : "justify-center"}`}
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"

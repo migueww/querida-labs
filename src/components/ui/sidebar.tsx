@@ -60,7 +60,7 @@ export function Sidebar({ className, side = "left", ...props }: SidebarProps) {
   return (
     <aside
       className={cn(
-        "fixed top-0 z-40 h-screen border-r border-slate-200 bg-white transition-all duration-300",
+        "fixed top-0 z-40 h-screen border-r border-slate-200 bg-white transition-all duration-300 flex flex-col",
         side === "left" ? "left-0" : "right-0",
         isOpen ? "w-64" : "w-16",
         className
@@ -104,7 +104,7 @@ export function SidebarContent({
 }: React.HTMLAttributes<HTMLDivElement>) {
   return (
     <div
-      className={cn("flex flex-col h-full overflow-y-auto", className)}
+      className={cn("flex flex-col flex-1 overflow-y-auto", className)}
       {...props}
     />
   );
@@ -120,6 +120,7 @@ export function SidebarHeader({
     <div
       className={cn(
         "flex items-center gap-2 border-b border-slate-200 p-4",
+        !isOpen && "justify-center",
         className
       )}
       {...props}
@@ -135,9 +136,15 @@ export function SidebarFooter({
   className,
   ...props
 }: React.HTMLAttributes<HTMLDivElement>) {
+  const { isOpen } = useSidebar();
+
   return (
     <div
-      className={cn("mt-auto border-t border-slate-200 p-4", className)}
+      className={cn(
+        "mt-auto border-t border-slate-200 p-4",
+        !isOpen && "flex justify-center",
+        className
+      )}
       {...props}
     />
   );
