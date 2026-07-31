@@ -7,6 +7,7 @@ interface SidebarContextValue {
   isOpen: boolean;
   setIsOpen: (open: boolean) => void;
   toggle: () => void;
+  isMounted: boolean;
 }
 
 const SidebarContext = React.createContext<SidebarContextValue | undefined>(
@@ -31,9 +32,22 @@ export function SidebarProvider({
   defaultOpen = true,
 }: SidebarProviderProps) {
   const [isOpen, setIsOpen] = React.useState(defaultOpen);
+  const [isMounted, setIsMounted] = React.useState(false);
+
+  React.useEffect(() => {
+    const saved = localStorage.getItem("sidebar:isOpen");
+    if (saved !== null) {
+      setIsOpen(saved === "true");
+    }
+    setIsMounted(true);
+  }, []);
 
   const toggle = React.useCallback(() => {
-    setIsOpen((prev) => !prev);
+    setIsOpen((prev) => {
+      const next = !prev;
+      localStorage.setItem("sidebar:isOpen", String(next));
+      return next;
+    });
   }, []);
 
   const value = React.useMemo(
@@ -41,8 +55,9 @@ export function SidebarProvider({
       isOpen,
       setIsOpen,
       toggle,
+      isMounted,
     }),
-    [isOpen, toggle]
+    [isOpen, toggle, isMounted]
   );
 
   return (
@@ -55,14 +70,14 @@ interface SidebarProps extends React.HTMLAttributes<HTMLDivElement> {
 }
 
 export function Sidebar({ className, side = "left", ...props }: SidebarProps) {
-  const { isOpen } = useSidebar();
+  const { isOpen, isMounted } = useSidebar();
 
   return (
     <aside
       className={cn(
-        "fixed top-0 z-40 h-screen border-r border-slate-200 bg-white transition-all duration-300 flex flex-col",
-        side === "left" ? "left-0" : "right-0",
-        isOpen ? "w-64" : "w-16",
+        "h-screen border-r border-slate-200/50 dark:border-white/5 bg-white dark:bg-[#09090b]/90 dark:backdrop-blur-xl flex flex-col shrink-0 overflow-x-hidden",
+        isMounted && "transition-all duration-300",
+        isOpen ? "w-64" : "w-[72px]",
         className
       )}
       {...props}
@@ -76,7 +91,7 @@ export function SidebarTrigger() {
   return (
     <button
       onClick={toggle}
-      className="inline-flex items-center justify-center rounded-md p-2 text-slate-700 hover:bg-slate-100 transition-colors"
+      className="inline-flex items-center justify-center rounded-md p-2 text-slate-700 dark:text-zinc-400 hover:bg-slate-100 dark:hover:bg-white/10 dark:hover:text-zinc-100 transition-colors cursor-pointer"
       aria-label="Toggle sidebar"
     >
       <svg
@@ -90,9 +105,8 @@ export function SidebarTrigger() {
         strokeLinecap="round"
         strokeLinejoin="round"
       >
-        <line x1="3" y1="6" x2="21" y2="6" />
-        <line x1="3" y1="12" x2="21" y2="12" />
-        <line x1="3" y1="18" x2="21" y2="18" />
+        <rect width="18" height="18" x="3" y="3" rx="2" />
+        <path d="M9 3v18" />
       </svg>
     </button>
   );
@@ -112,6 +126,7 @@ export function SidebarContent({
 
 export function SidebarHeader({
   className,
+  children,
   ...props
 }: React.HTMLAttributes<HTMLDivElement>) {
   const { isOpen } = useSidebar();
@@ -119,21 +134,19 @@ export function SidebarHeader({
   return (
     <div
       className={cn(
-        "flex items-center gap-2 border-b border-slate-200 p-4",
-        !isOpen && "justify-center",
+        "flex flex-col p-4",
         className
       )}
       {...props}
     >
-      {isOpen && (
-        <h2 className="text-lg font-semibold text-slate-900">Menu</h2>
-      )}
+      {children}
     </div>
   );
 }
 
 export function SidebarFooter({
   className,
+  children,
   ...props
 }: React.HTMLAttributes<HTMLDivElement>) {
   const { isOpen } = useSidebar();
@@ -141,12 +154,14 @@ export function SidebarFooter({
   return (
     <div
       className={cn(
-        "mt-auto border-t border-slate-200 p-4",
-        !isOpen && "flex justify-center",
+        "mt-auto p-4 flex flex-col gap-2",
+        !isOpen && "items-center",
         className
       )}
       {...props}
-    />
+    >
+      {children}
+    </div>
   );
 }
 
@@ -184,16 +199,17 @@ export function SidebarMenuButton({
   return (
     <button
       className={cn(
-        "flex items-center gap-3 w-full rounded-md px-3 py-2 text-sm font-medium transition-colors",
-        "hover:bg-slate-100",
-        isActive && "bg-slate-100 text-slate-900",
-        !isActive && "text-slate-700",
+        "flex items-center w-full rounded-lg text-[14px] font-medium transition-colors cursor-pointer",
+        isOpen ? "gap-3 px-3 py-2 justify-start" : "justify-center p-2",
+        "hover:bg-slate-100 dark:hover:bg-white/5 dark:hover:text-zinc-100",
+        isActive && "bg-slate-100 dark:bg-white/10 text-slate-900 dark:text-zinc-50",
+        !isActive && "text-slate-600 dark:text-zinc-400",
         className
       )}
       {...props}
     >
       {icon && (
-        <span className={cn("flex-shrink-0", !isOpen && "mx-auto")}>
+        <span className={cn("flex-shrink-0 flex items-center justify-center w-5 h-5")}>
           {icon}
         </span>
       )}

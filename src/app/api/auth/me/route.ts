@@ -23,7 +23,12 @@ export async function GET(request: NextRequest) {
     }
 
     // Try finding live user details in MongoDB
-    const dbUser = await UserModel.findByEmail(payload.email);
+    let dbUser = null;
+    try {
+      dbUser = await UserModel.findByEmail(payload.email);
+    } catch (e) {
+      console.warn("[GET /api/auth/me] DB lookup failed, falling back to token payload.", e);
+    }
 
     if (dbUser) {
       return NextResponse.json({ user: UserModel.toDTO(dbUser) });
@@ -36,6 +41,7 @@ export async function GET(request: NextRequest) {
         name: payload.name,
         email: payload.email,
         role: payload.role,
+        image: (payload as any).image,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       },

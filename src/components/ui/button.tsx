@@ -22,15 +22,15 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
     ref
   ) => {
     const baseClasses =
-      "inline-flex items-center justify-center font-medium rounded-lg transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-900 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 active:scale-[0.98]";
+      "inline-flex items-center justify-center font-medium rounded-lg transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-900 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 active:scale-[0.98] cursor-pointer";
 
     const variantClasses = {
-      default: "bg-slate-900 text-white hover:bg-slate-800 shadow-sm hover:shadow-md",
+      default: "bg-slate-900 dark:bg-white text-white dark:text-zinc-950 hover:bg-slate-800 dark:hover:bg-zinc-200 shadow-sm hover:shadow-md disabled:dark:bg-white/10 disabled:dark:text-white/40 disabled:opacity-100 disabled:shadow-none",
       outline:
-        "border border-slate-300 bg-white text-slate-800 hover:bg-slate-50 hover:border-slate-400 shadow-xs",
-      secondary: "bg-slate-100 text-slate-900 hover:bg-slate-200",
-      destructive: "bg-red-600 text-white hover:bg-red-700 shadow-xs",
-      ghost: "text-slate-700 hover:bg-slate-100 hover:text-slate-900",
+        "border border-slate-300 dark:border-white/10 bg-white dark:bg-transparent text-slate-800 dark:text-zinc-100 hover:bg-slate-50 dark:hover:bg-white/5 hover:border-slate-400 dark:hover:border-white/20 shadow-xs",
+      secondary: "bg-slate-100 dark:bg-white/10 text-slate-900 dark:text-zinc-100 hover:bg-slate-200 dark:hover:bg-white/20",
+      destructive: "bg-red-600 dark:bg-red-500/90 text-white hover:bg-red-700 dark:hover:bg-red-600 shadow-xs",
+      ghost: "text-slate-700 dark:text-zinc-300 hover:bg-slate-100 dark:hover:bg-white/10 dark:hover:text-zinc-100",
     };
 
     const sizeClasses = {

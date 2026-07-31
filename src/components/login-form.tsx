@@ -7,11 +7,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/use-auth";
 
 export function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { toast } = useToast();
+  const { refetchUser } = useAuth();
 
   const [email, setEmail] = React.useState("");
   const [password, setPassword] = React.useState("");
@@ -63,6 +65,7 @@ export function LoginForm() {
         type: "success",
       });
 
+      await refetchUser();
       router.push(redirectPath);
       router.refresh();
     } catch (err) {
@@ -79,15 +82,15 @@ export function LoginForm() {
   }
 
   return (
-    <Card className="w-full max-w-md border-slate-200/80 bg-white/95 backdrop-blur-md shadow-xl transition-all duration-300">
+    <Card className="w-full max-w-md border-slate-200/80 dark:border-white/10 bg-white/95 dark:bg-zinc-900/60 backdrop-blur-xl shadow-xl transition-all duration-300">
       <CardHeader className="space-y-2 text-center pb-2">
         <div className="mx-auto h-12 w-12 rounded-2xl bg-slate-900 flex items-center justify-center text-white font-extrabold text-xl shadow-md mb-2">
           QL
         </div>
-        <CardTitle className="text-2xl font-bold text-slate-900 tracking-tight">
+        <CardTitle className="text-2xl font-bold text-slate-900 dark:text-zinc-100 tracking-tight">
           Querida Labs
         </CardTitle>
-        <CardDescription className="text-slate-600">
+        <CardDescription className="text-slate-600 dark:text-zinc-400">
           Painel central de ferramentas internas
         </CardDescription>
       </CardHeader>
@@ -95,7 +98,7 @@ export function LoginForm() {
       <CardContent className="pt-4">
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="email" required className="text-slate-700">
+            <Label htmlFor="email" required className="text-slate-700 dark:text-zinc-300">
               E-mail
             </Label>
             <Input
@@ -114,7 +117,7 @@ export function LoginForm() {
 
           <div className="space-y-2">
             <div className="flex items-center justify-between">
-              <Label htmlFor="password" required className="text-slate-700">
+              <Label htmlFor="password" required className="text-slate-700 dark:text-zinc-300">
                 Senha
               </Label>
             </div>
@@ -180,7 +183,7 @@ export function LoginForm() {
             {isSubmitting ? "Entrando..." : "Entrar no sistema"}
           </Button>
 
-          <div className="pt-4 border-t border-slate-100 text-center text-xs text-slate-500">
+          <div className="pt-4 border-t border-slate-100 dark:border-white/10 text-center text-xs text-slate-500 dark:text-zinc-500">
             Ambiente restrito e protegido — Querida Labs &copy; {new Date().getFullYear()}
           </div>
         </form>

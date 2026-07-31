@@ -8,6 +8,7 @@ export interface MongoUserDocument {
   email: string;
   passwordHash: string;
   role: "admin" | "user";
+  image?: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -27,6 +28,7 @@ export class UserModel {
       name: user.name,
       email: user.email,
       role: user.role,
+      image: user.image,
       createdAt: user.createdAt.toISOString(),
       updatedAt: user.updatedAt.toISOString(),
     };
@@ -39,6 +41,7 @@ export class UserModel {
       email: doc.email.toLowerCase().trim(),
       passwordHash: doc.passwordHash,
       role: doc.role,
+      image: doc.image,
       createdAt: doc.createdAt || new Date(),
       updatedAt: doc.updatedAt || new Date(),
     };
@@ -69,6 +72,7 @@ export class UserModel {
       email: user.email.toLowerCase().trim(),
       passwordHash: user.passwordHash,
       role: user.role,
+      image: user.image,
       createdAt: now,
       updatedAt: now,
     };
@@ -86,5 +90,30 @@ export class UserModel {
   public static async countUsers(): Promise<number> {
     const collection = await this.getCollection();
     return collection.countDocuments();
+  }
+
+  public static async update(
+    id: string,
+    updates: Partial<Omit<User, "id" | "createdAt" | "updatedAt">>
+  ): Promise<User | null> {
+    const collection = await this.getCollection();
+    if (!ObjectId.isValid(id)) return null;
+
+    const now = new Date();
+    const updateFields: any = {
+      ...updates,
+      updatedAt: now,
+    };
+
+    if (updates.email) {
+      updateFields.email = updates.email.toLowerCase().trim();
+    }
+
+    await collection.updateOne(
+      { _id: new ObjectId(id) },
+      { $set: updateFields }
+    );
+
+    return this.findById(id);
   }
 }

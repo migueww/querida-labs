@@ -7,6 +7,7 @@ export interface User {
   email: string;
   passwordHash: string;
   role: UserRole;
+  image?: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -16,6 +17,7 @@ export interface UserDTO {
   name: string;
   email: string;
   role: UserRole;
+  image?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -25,6 +27,7 @@ export interface AuthJWTPayload {
   email: string;
   name: string;
   role: UserRole;
+  image?: string;
   iat?: number;
   exp?: number;
 }

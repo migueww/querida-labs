@@ -1,6 +1,17 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
+import { useTheme } from "next-themes";
+import {
+  LayoutDashboard,
+  FileSpreadsheet,
+  User,
+  Sun,
+  Moon,
+  LogOut,
+  ChevronsUpDown,
+} from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -9,7 +20,6 @@ import {
   SidebarMenu,
   SidebarMenuItem,
   SidebarMenuButton,
-  SidebarTrigger,
   useSidebar,
 } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
@@ -20,58 +30,51 @@ export function AppSidebar() {
   const pathname = usePathname();
   const { isOpen } = useSidebar();
   const { user, logout } = useAuth();
+  const { theme, setTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+  const [imageError, setImageError] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    setImageError(false);
+  }, [user?.image]);
 
   return (
-    <Sidebar className="flex flex-col border-r border-slate-200 bg-white">
-      <SidebarHeader className="border-b border-slate-100 py-3">
-        <div className="flex items-center justify-between w-full px-1">
-          {isOpen && (
-            <div className="flex items-center gap-2">
-              <div className="h-7 w-7 rounded-lg bg-slate-900 flex items-center justify-center text-white font-bold text-xs tracking-wider shadow-xs">
-                QL
-              </div>
-              <div className="flex flex-col">
-                <span className="text-sm font-semibold text-slate-900 leading-tight">
+    <Sidebar>
+      <SidebarHeader>
+        <div className={`flex items-center w-full ${isOpen ? "justify-between" : "justify-center"}`}>
+          <div className="flex items-center gap-2.5 min-w-0">
+            <div className="h-6 w-6 rounded-md bg-slate-200 dark:bg-white/10 text-slate-700 dark:text-zinc-300 flex items-center justify-center font-bold text-[11px] tracking-wider shrink-0">
+              QL
+            </div>
+            {isOpen && (
+              <div className="flex flex-col min-w-0 flex-1 text-left">
+                <span className="text-[14px] font-semibold text-slate-900 dark:text-zinc-100 leading-tight truncate">
                   Querida Labs
                 </span>
-                <span className="text-[10px] font-medium text-slate-500 uppercase tracking-wider">
-                  Internal Tools
-                </span>
               </div>
-            </div>
+            )}
+          </div>
+          {isOpen && (
+            <ChevronsUpDown className="h-4 w-4 text-slate-400 dark:text-zinc-500 shrink-0 ml-1" />
           )}
-          <SidebarTrigger />
         </div>
       </SidebarHeader>
 
-      <SidebarContent className="p-2 space-y-4">
-        <div className="px-2 pt-2">
+      <SidebarContent className="py-2 space-y-4 dark:bg-transparent">
+        <div className="pt-2">
           {isOpen && (
-            <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-2">
+            <p className="text-[11px] font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-2">
               Ferramentas
             </p>
           )}
           <SidebarMenu>
             <SidebarMenuItem>
               <SidebarMenuButton
-                icon={
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="18"
-                    height="18"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
-                    <rect width="7" height="9" x="3" y="3" rx="1" />
-                    <rect width="7" height="5" x="14" y="3" rx="1" />
-                    <rect width="7" height="9" x="14" y="12" rx="1" />
-                    <rect width="7" height="5" x="3" y="16" rx="1" />
-                  </svg>
-                }
+                icon={<LayoutDashboard className="h-4 w-4" />}
                 isActive={pathname === "/dashboard"}
                 onClick={() => router.push("/dashboard")}
               >
@@ -81,25 +84,7 @@ export function AppSidebar() {
 
             <SidebarMenuItem>
               <SidebarMenuButton
-                icon={
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="18"
-                    height="18"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
-                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-                    <path d="M14 2v6h6" />
-                    <path d="M16 13H8" />
-                    <path d="M16 17H8" />
-                    <path d="M10 9H8" />
-                  </svg>
-                }
+                icon={<FileSpreadsheet className="h-4 w-4" />}
                 isActive={pathname === "/consolidador-xlsx"}
                 onClick={() => router.push("/consolidador-xlsx")}
               >
@@ -110,46 +95,72 @@ export function AppSidebar() {
         </div>
       </SidebarContent>
 
-      <SidebarFooter className="border-t border-slate-100 p-3 space-y-3">
-        {user && isOpen && (
-          <div className="flex items-center gap-3 px-2 py-1.5 rounded-lg bg-slate-50 border border-slate-200/60">
-            <div className="h-8 w-8 rounded-full bg-slate-900 text-white flex items-center justify-center text-xs font-semibold shrink-0">
-              {user.name ? user.name.charAt(0).toUpperCase() : "U"}
+      <SidebarFooter className="border-t border-slate-100 dark:border-white/10 p-2 dark:bg-transparent space-y-2">
+        {user && (
+          isOpen ? (
+            <div
+              onClick={() => router.push("/perfil")}
+              className="flex items-center justify-between gap-2 px-2 py-1.5 rounded-lg bg-transparent hover:bg-slate-100 dark:hover:bg-white/5 cursor-pointer transition-all"
+            >
+              <div className="flex items-center gap-2 min-w-0">
+                <div className="h-8 w-8 rounded-full bg-slate-900 dark:bg-white text-white dark:text-zinc-950 flex items-center justify-center text-xs font-semibold shrink-0 overflow-hidden">
+                  {user.image && !imageError ? (
+                    <img src={user.image} alt={user.name} className="h-full w-full object-cover" onError={() => setImageError(true)} />
+                  ) : (
+                    user.name ? user.name.charAt(0).toUpperCase() : "U"
+                  )}
+                </div>
+                <div className="flex flex-col min-w-0 text-left">
+                  <span className="text-xs font-semibold text-slate-900 dark:text-zinc-100 truncate">
+                    {user.name}
+                  </span>
+                  <span className="text-[10px] text-slate-500 dark:text-zinc-400 truncate">
+                    {user.email}
+                  </span>
+                </div>
+              </div>
+              <ChevronsUpDown className="h-4 w-4 text-slate-500 dark:text-zinc-400 shrink-0" />
             </div>
-            <div className="flex flex-col min-w-0 flex-1">
-              <span className="text-xs font-medium text-slate-900 truncate">
-                {user.name}
-              </span>
-              <span className="text-[11px] text-slate-500 truncate">
-                {user.email}
-              </span>
-            </div>
-          </div>
+          ) : (
+            <button
+              onClick={() => router.push("/perfil")}
+              className="h-8 w-8 rounded-full bg-slate-900 dark:bg-white text-white dark:text-zinc-950 flex items-center justify-center text-xs font-semibold mx-auto overflow-hidden hover:ring-2 hover:ring-slate-300 dark:hover:ring-white/20 transition-all cursor-pointer"
+              title="Meu Perfil"
+            >
+              {user.image && !imageError ? (
+                <img src={user.image} alt={user.name} className="h-full w-full object-cover" onError={() => setImageError(true)} />
+              ) : (
+                user.name ? user.name.charAt(0).toUpperCase() : "U"
+              )}
+            </button>
+          )
         )}
+
+        <Button
+          onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+          variant="outline"
+          size="sm"
+          className={`w-full gap-2.5 text-slate-700 dark:text-slate-200 border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/50 ${isOpen ? "justify-start" : "justify-center px-0"
+            }`}
+        >
+          {!mounted ? (
+            <span className="h-4 w-4 animate-pulse rounded-full bg-slate-200" />
+          ) : theme === "dark" ? (
+            <Sun className="h-4 w-4" />
+          ) : (
+            <Moon className="h-4 w-4" />
+          )}
+          {isOpen && <span>{mounted && theme === "dark" ? "Modo Claro" : "Modo Escuro"}</span>}
+        </Button>
 
         <Button
           onClick={() => logout()}
           variant="outline"
           size="sm"
-          className={`w-full gap-2.5 text-red-600 border-red-100 hover:bg-red-50 hover:text-red-700 hover:border-red-200 ${
-            isOpen ? "justify-start" : "justify-center px-0"
-          }`}
+          className={`w-full gap-2.5 text-red-600 dark:text-red-400 border-red-100 dark:border-red-950/40 hover:bg-red-50 dark:hover:bg-red-950/20 hover:text-red-700 dark:hover:text-red-300 hover:border-red-200 dark:hover:border-red-900 ${isOpen ? "justify-start" : "justify-center px-0"
+            }`}
         >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="16"
-            height="16"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-            <polyline points="16 17 21 12 16 7" />
-            <line x1="21" y1="12" x2="9" y2="12" />
-          </svg>
+          <LogOut className="h-4 w-4" />
           {isOpen && <span>Sair da conta</span>}
         </Button>
       </SidebarFooter>

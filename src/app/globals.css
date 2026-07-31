@@ -1,5 +1,11 @@
 @import "tailwindcss";
 
+@variant dark (&:where(.dark, .dark *));
+
+button, [role="button"] {
+  cursor: pointer;
+}
+
 :root {
   --background: #ffffff;
   --foreground: #171717;
@@ -14,8 +20,8 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --background: #09090b; /* Zinc 950 for a sleek modern dark background */
+    --foreground: #fafafa;
   }
 }
 
