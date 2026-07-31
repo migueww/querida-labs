@@ -4,6 +4,7 @@ import { UserModel } from "@/lib/models/user.model";
 import { AuthService } from "@/lib/services/auth.service";
 import path from "path";
 import fs from "fs/promises";
+import { getDatabase } from "@/lib/db/mongodb";
 
 export async function PUT(request: NextRequest) {
   try {
@@ -94,23 +95,51 @@ export async function PUT(request: NextRequest) {
         );
       }
 
-      // Create uploads directory if it doesn't exist
-      const uploadDir = path.join(process.cwd(), "public", "uploads");
-      try {
-        await fs.access(uploadDir);
-      } catch {
-        await fs.mkdir(uploadDir, { recursive: true });
+      if (!dbOffline) {
+        try {
+          const db = await getDatabase();
+          const avatarsCollection = db.collection("avatars");
+          const buffer = Buffer.from(await file.arrayBuffer());
+          const base64Data = buffer.toString("base64");
+
+          await avatarsCollection.updateOne(
+            { userId: user!.id },
+            {
+              $set: {
+                userId: user!.id,
+                data: base64Data,
+                contentType: file.type || "image/jpeg",
+                updatedAt: new Date(),
+              },
+            },
+            { upsert: true }
+          );
+
+          updates.image = `/api/avatar/${user!.id}?t=${Date.now()}`;
+        } catch (err) {
+          console.error("[PUT /api/auth/profile] Erro ao salvar avatar no MongoDB:", err);
+          return NextResponse.json(
+            { message: "Erro ao salvar imagem no banco de dados." },
+            { status: 500 }
+          );
+        }
+      } else {
+        // Fallback apenas no modo offline local
+        const uploadDir = path.join(process.cwd(), "public", "uploads");
+        try {
+          await fs.mkdir(uploadDir, { recursive: true });
+          const ext = path.extname(file.name) || (file.type === "image/png" ? ".png" : ".jpg");
+          const filename = `avatar-${Date.now()}${ext}`;
+          const filePath = path.join(uploadDir, filename);
+
+          const buffer = Buffer.from(await file.arrayBuffer());
+          await fs.writeFile(filePath, buffer);
+
+          updates.image = `/uploads/${filename}`;
+        } catch (e) {
+          console.error("Erro ao salvar imagem no modo offline:", e);
+        }
       }
-
-      // Save file
-      const ext = path.extname(file.name) || (file.type === "image/png" ? ".png" : ".jpg");
-      const filename = `avatar-${Date.now()}${ext}`;
-      const filePath = path.join(uploadDir, filename);
-      
-      const buffer = Buffer.from(await file.arrayBuffer());
-      await fs.writeFile(filePath, buffer);
-
-      updates.image = `/uploads/${filename}`;
     }
 
     // Try to update user in DB
