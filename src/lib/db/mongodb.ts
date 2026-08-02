@@ -17,11 +17,11 @@ declare global {
 }
 
 if (!uri || uri.includes("<db_password>")) {
-  clientPromise = Promise.reject(
-    new Error(
-      "MongoDB URI is missing or contains placeholder '<db_password>'. Please update .env.local with valid credentials."
-    )
+  const err = new Error(
+    "MongoDB URI is missing or contains placeholder '<db_password>'. Please update .env.local with valid credentials."
   );
+  clientPromise = Promise.reject(err);
+  clientPromise.catch(() => {}); // Prevent top-level unhandled rejection warning during module import
 } else if (process.env.NODE_ENV === "development") {
   if (!global._mongoClientPromise) {
     client = new MongoClient(uri, options);

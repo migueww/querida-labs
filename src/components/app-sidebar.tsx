@@ -6,6 +6,7 @@ import { useTheme } from "next-themes";
 import {
   LayoutDashboard,
   FileSpreadsheet,
+  RefreshCw,
   User,
   Sun,
   Moon,
@@ -89,6 +90,16 @@ export function AppSidebar() {
                 onClick={() => router.push("/consolidador-xlsx")}
               >
                 Consolidador XLSX
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+
+            <SidebarMenuItem>
+              <SidebarMenuButton
+                icon={<RefreshCw className="h-4 w-4" />}
+                isActive={pathname === "/revalidacao-cv"}
+                onClick={() => router.push("/revalidacao-cv")}
+              >
+                Revalidação - CV
               </SidebarMenuButton>
             </SidebarMenuItem>
           </SidebarMenu>

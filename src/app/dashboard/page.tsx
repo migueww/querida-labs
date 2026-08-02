@@ -52,6 +52,29 @@ export default function DashboardPage() {
             </CardContent>
           </Card>
 
+          {/* Tool Card 2: Planilha de Revalidação - CV */}
+          <Card className="hover:border-slate-300 transition-all shadow-sm hover:shadow-md flex flex-col justify-between">
+            <CardHeader>
+              <div className="h-10 w-10 rounded-xl bg-indigo-600 text-white flex items-center justify-center text-lg font-bold mb-3 shadow-xs">
+                🔄
+              </div>
+              <CardTitle className="text-lg font-bold">Planilha de Revalidação - CV</CardTitle>
+              <CardDescription>
+                Gerencie Matérias-Primas e cruze com Produtos Bloqueados para gerar a planilha final em abas Geral e Vendas.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="pt-2">
+              <Link href="/revalidacao-cv">
+                <Button className="w-full gap-2 font-medium bg-indigo-600 hover:bg-indigo-700 text-white">
+                  Acessar Revalidação
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                  </svg>
+                </Button>
+              </Link>
+            </CardContent>
+          </Card>
+
           {/* Placeholder for future tools */}
           <Card className="border-dashed border-slate-300 bg-slate-50/50 flex flex-col justify-center items-center p-8 text-center">
             <div className="h-10 w-10 rounded-xl bg-slate-200 text-slate-500 flex items-center justify-center text-lg mb-3">
