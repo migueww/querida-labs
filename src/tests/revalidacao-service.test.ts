@@ -28,6 +28,34 @@ describe("RevalidacaoService", () => {
     );
   });
 
+  it("should parse specific sheet names if provided", () => {
+    const wb = XLSX.utils.book_new();
+    
+    // Sheet 1: ignore (contains "bloqueado" but we explicitly request Sheet 2)
+    const ws1Data = [
+      ["Código do Produto", "Nome do Produto", "Status"],
+      ["1001", "Produto 1", "Bloqueado"],
+    ];
+    const ws1 = XLSX.utils.aoa_to_sheet(ws1Data);
+    XLSX.utils.book_append_sheet(wb, ws1, "estoque bloqueado");
+
+    // Sheet 2: target sheet
+    const ws2Data = [
+      ["Código do Produto", "Nome do Produto", "Status"],
+      ["2002", "Produto 2", "Liberado"],
+    ];
+    const ws2 = XLSX.utils.aoa_to_sheet(ws2Data);
+    XLSX.utils.book_append_sheet(wb, ws2, "outra aba");
+
+    const buffer = XLSX.write(wb, { type: "buffer", bookType: "xlsx" });
+
+    // When we specify "outra aba"
+    const parsed = RevalidacaoService.parseProdutosBloqueadosSpreadsheet(buffer, ["outra aba"]);
+    expect(parsed.length).toBe(1);
+    expect(parsed[0].codigoProduto).toBe("2002");
+    expect(parsed[0].status).toBe("Liberado");
+  });
+
   it("should generate Excel workbook with Geral and Vendas tabs and exclude Amostra in Vendas tab", async () => {
     const materiaPrimaMap = new Map<string, MateriaPrima>();
 

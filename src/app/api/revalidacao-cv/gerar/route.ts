@@ -30,8 +30,22 @@ export async function POST(request: NextRequest) {
     const arrayBuffer = await file.arrayBuffer();
     const fileBuffer = Buffer.from(arrayBuffer);
 
+    // Extract selected sheets and excludeLiberados option
+    const selectedSheets = formData.getAll("sheets") as string[];
+    const excludeLiberados = formData.get("excludeLiberados") === "true";
+
     // 1. Parse Produtos Bloqueados spreadsheet
-    const produtosBloqueados = RevalidacaoService.parseProdutosBloqueadosSpreadsheet(fileBuffer);
+    let produtosBloqueados = RevalidacaoService.parseProdutosBloqueadosSpreadsheet(
+      fileBuffer,
+      selectedSheets
+    );
+
+    // Apply filter on Liberado products if option is active
+    if (excludeLiberados) {
+      produtosBloqueados = produtosBloqueados.filter(
+        (pb) => pb.status.trim().toLowerCase() !== "liberado"
+      );
+    }
 
     // 2. Load Matérias-Primas Map from MongoDB
     const mpMap = await MateriaPrimaModel.getAllAsMap();

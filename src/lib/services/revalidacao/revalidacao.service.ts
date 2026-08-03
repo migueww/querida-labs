@@ -204,7 +204,10 @@ export class RevalidacaoService {
   /**
    * Parses and validates Produtos Bloqueados spreadsheet.
    */
-  public static parseProdutosBloqueadosSpreadsheet(fileBuffer: Buffer): ProdutoBloqueadoRow[] {
+  public static parseProdutosBloqueadosSpreadsheet(
+    fileBuffer: Buffer,
+    sheetNames?: string[]
+  ): ProdutoBloqueadoRow[] {
     let workbook: XLSX.WorkBook;
     try {
       workbook = XLSX.read(fileBuffer, { type: "buffer" });
@@ -216,71 +219,86 @@ export class RevalidacaoService {
       throw new Error("A planilha de Produtos Bloqueados está vazia.");
     }
 
-    // Find sheet containing data
-    let targetSheetName = workbook.SheetNames.find((name) =>
-      this.normalizeHeader(name).includes("bloqueado") || this.normalizeHeader(name).includes("geral")
-    );
-    if (!targetSheetName) {
-      targetSheetName = workbook.SheetNames[0];
+    // Determine target sheets to parse
+    let selectedSheets: string[] = [];
+    if (sheetNames && sheetNames.length > 0) {
+      // Keep only valid sheet names present in the workbook
+      selectedSheets = sheetNames.filter((name) => workbook.SheetNames.includes(name));
     }
 
-    const sheet = workbook.Sheets[targetSheetName];
-    const rawRows = XLSX.utils.sheet_to_json<Record<string, any>>(sheet, { defval: "" });
-
-    if (!rawRows || rawRows.length === 0) {
-      throw new Error(`A aba '${targetSheetName}' da planilha de Produtos Bloqueados está vazia.`);
-    }
-
-    // Header keys
-    const sampleRow = rawRows[0];
-    const headerKeys = Object.keys(sampleRow);
-
-    const getFieldKey = (pattern: string) =>
-      headerKeys.find((k) => this.normalizeHeader(k).includes(this.normalizeHeader(pattern)));
-
-    const codeKey = getFieldKey("codigo");
-    const nameKey = getFieldKey("nome");
-    const loteKey = getFieldKey("lote");
-    const saldoKey = getFieldKey("saldo");
-    const statusKey = getFieldKey("status");
-    const fabKey = getFieldKey("fabricacao");
-    const valKey = getFieldKey("validade");
-    const detKey = getFieldKey("detalhes");
-    const obsKey = getFieldKey("observac");
-    const distKey = getFieldKey("distribuida") || getFieldKey("distribuidor");
-    const pendKey = getFieldKey("pendente");
-
-    if (!codeKey) {
-      throw new Error("A coluna 'Código do Produto' não foi encontrada na planilha de Produtos Bloqueados.");
+    // If no sheets selected or valid, fallback to sheet detection logic
+    if (selectedSheets.length === 0) {
+      let targetSheetName = workbook.SheetNames.find((name) =>
+        this.normalizeHeader(name).includes("bloqueado") || this.normalizeHeader(name).includes("geral")
+      );
+      if (!targetSheetName) {
+        targetSheetName = workbook.SheetNames[0];
+      }
+      selectedSheets = [targetSheetName];
     }
 
     const result: ProdutoBloqueadoRow[] = [];
 
-    for (const row of rawRows) {
-      const rawCode = row[codeKey];
-      if (rawCode === undefined || rawCode === null || String(rawCode).trim() === "") {
+    for (const sheetName of selectedSheets) {
+      const sheet = workbook.Sheets[sheetName];
+      const rawRows = XLSX.utils.sheet_to_json<Record<string, any>>(sheet, { defval: "" });
+
+      if (!rawRows || rawRows.length === 0) {
         continue;
       }
 
-      const codigoProduto = MateriaPrimaModel.normalizeCodigo(rawCode);
+      // Header keys
+      const sampleRow = rawRows[0];
+      const headerKeys = Object.keys(sampleRow);
 
-      result.push({
-        codigoProduto,
-        nomeProduto: String(row[nameKey || ""] || "").trim(),
-        lote: String(row[loteKey || ""] || "").trim(),
-        saldoEstoque: row[saldoKey || ""] !== "" ? row[saldoKey || ""] : 0,
-        status: String(row[statusKey || ""] || "").trim(),
-        dataFabricacao: this.formatDate(row[fabKey || ""]),
-        dataValidade: this.formatDate(row[valKey || ""]),
-        detalhes: String(row[detKey || ""] || "").trim(),
-        observacoes: String(row[obsKey || ""] || "").trim(),
-        distribuida: String(row[distKey || ""] || "").trim() || "NÃO ATRIBUIDO",
-        qtdPendentePedidos: row[pendKey || ""] !== "" ? row[pendKey || ""] : 0,
-      });
+      const getFieldKey = (pattern: string) =>
+        headerKeys.find((k) => this.normalizeHeader(k).includes(this.normalizeHeader(pattern)));
+
+      const codeKey = getFieldKey("codigo");
+      const nameKey = getFieldKey("nome");
+      const loteKey = getFieldKey("lote");
+      const saldoKey = getFieldKey("saldo");
+      const statusKey = getFieldKey("status");
+      const fabKey = getFieldKey("fabricacao");
+      const valKey = getFieldKey("validade");
+      const detKey = getFieldKey("detalhes");
+      const obsKey = getFieldKey("observac");
+      const distKey = getFieldKey("distribuida") || getFieldKey("distribuidor");
+      const pendKey = getFieldKey("pendente");
+
+      // Skip this sheet if the mandatory "Código do Produto" column is not present
+      if (!codeKey) {
+        continue;
+      }
+
+      for (const row of rawRows) {
+        const rawCode = row[codeKey];
+        if (rawCode === undefined || rawCode === null || String(rawCode).trim() === "") {
+          continue;
+        }
+
+        const codigoProduto = MateriaPrimaModel.normalizeCodigo(rawCode);
+
+        result.push({
+          codigoProduto,
+          nomeProduto: String(row[nameKey || ""] || "").trim(),
+          lote: String(row[loteKey || ""] || "").trim(),
+          saldoEstoque: row[saldoKey || ""] !== "" ? row[saldoKey || ""] : 0,
+          status: String(row[statusKey || ""] || "").trim(),
+          dataFabricacao: this.formatDate(row[fabKey || ""]),
+          dataValidade: this.formatDate(row[valKey || ""]),
+          detalhes: String(row[detKey || ""] || "").trim(),
+          observacoes: String(row[obsKey || ""] || "").trim(),
+          distribuida: String(row[distKey || ""] || "").trim() || "NÃO ATRIBUIDO",
+          qtdPendentePedidos: row[pendKey || ""] !== "" ? row[pendKey || ""] : 0,
+        });
+      }
     }
 
     if (result.length === 0) {
-      throw new Error("Nenhum produto válido foi encontrado na planilha de Produtos Bloqueados.");
+      throw new Error(
+        "Nenhum produto válido foi encontrado nas abas selecionadas da planilha de Produtos Bloqueados."
+      );
     }
 
     return result;
